@@ -1,0 +1,143 @@
+.profile {
+  display: flex;
+  align-items: center;
+  width: 880px;
+  height: 120px;
+  margin-top: 40px;
+}
+.profile__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 415px;
+  height: 77px;
+  margin-left: 30px;
+}
+
+.profile__avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
+
+.profile__avatar-container:hover .profile__avatar {
+  opacity: 50%;
+}
+
+.profile__avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile__avatar-edit {
+  display: flex;
+  position: absolute;
+  top: 200px;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+}
+
+.profile__avatar-container:hover .profile__avatar-edit {
+  opacity: 1;
+}
+
+.profile__name {
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 1.14;
+  margin: 0;
+  padding: 0;
+}
+
+.profile__description {
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 1.2;
+  margin-top: 16px;
+  padding: 0;
+}
+
+.profile__edit {
+  background-color: #000000;
+  border: 0;
+  cursor: pointer;
+  max-width: 24px;
+  max-height: 24px;
+  align-self: flex-start;
+  position: relative;
+  top: 35px;
+  right: 30px;
+}
+
+.profile__add {
+  display: inline-block;
+  background-color: #000000;
+  border: 0;
+  cursor: pointer;
+  max-width: 150px;
+  max-height: 50px;
+  margin-left: auto;
+}
+
+.profile__edit:hover {
+  opacity: 60%;
+}
+
+.profile__add:hover {
+  opacity: 60%;
+}
+
+.profile__avatar:hover {
+}
+
+@media screen and (max-width: 1024px) {
+  .profile {
+    max-width: 528px;
+  }
+
+  .profile__name {
+    font-size: 32px;
+  }
+}
+
+@media screen and (max-width: 544px) {
+  .profile {
+    flex-direction: column;
+    max-width: 282px;
+    max-height: 286px;
+  }
+
+  .profile__info {
+    align-items: center;
+    max-width: 282px;
+  }
+
+  .profile__name {
+    font-size: 22px;
+  }
+
+  .profile__description {
+    font-size: 14px;
+  }
+
+  .profile__edit {
+    max-width: 18px;
+    max-height: 18px;
+  }
+
+  .profile__add {
+    max-width: 282px;
+    max-height: 50px;
+    margin: 0;
+  }
+}

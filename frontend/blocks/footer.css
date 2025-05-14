@@ -1,0 +1,19 @@
+.footer {
+  align-self: flex-start;
+  max-width: 318px;
+  margin: 67px auto 60px 220px;
+}
+
+.footer__copyright {
+  color: #545454;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+@media screen and (max-width: 544px) {
+  .footer {
+    max-width: 282px;
+    margin: 50px auto 36px 19px;
+  }
+}
