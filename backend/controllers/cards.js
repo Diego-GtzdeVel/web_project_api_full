@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 
 const ERROR_CODE = 400;
+const FORBIDDEN_CODE = 403;
 const NOT_FOUND_CODE = 404;
 const SERVER_ERROR_CODE = 500;
 
@@ -31,12 +32,18 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndDelete(cardId)
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
         return res.status(NOT_FOUND_CODE).send({ message: 'Tarjeta no encontrada' });
       }
-      return res.send({ message: 'Tarjeta eliminada correctamente' });
+
+      if (card.owner.toString() !== req.user._id) {
+        return res.status(FORBIDDEN_CODE).send({ message: 'No tienes permiso para eliminar esta tarjeta' });
+      }
+
+      return Card.findByIdAndDelete(cardId)
+        .then(() => res.send({ message: 'Tarjeta eliminada correctamente' }));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -47,6 +54,7 @@ module.exports.deleteCard = (req, res) => {
         .send({ message: 'Error del servidor', error: err.message });
     });
 };
+
 
 module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(

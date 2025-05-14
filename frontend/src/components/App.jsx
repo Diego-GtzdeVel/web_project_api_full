@@ -14,6 +14,7 @@ import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import api from "../utils/api";
 
 function App() {
+  const [token, setToken] = useState(localStorage.getItem("jwt") || "");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
   const [cards, setCards] = useState([]);
@@ -21,25 +22,32 @@ function App() {
 
   const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [tooltipSource, setTooltipSource] = useState(null); // para redirigir después
+  const [tooltipSource, setTooltipSource] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      auth.getToken(token)
+    const storedToken = localStorage.getItem("jwt");
+    if (storedToken) {
+      setToken(storedToken);
+      api.setToken(storedToken);
+
+      auth.getToken(storedToken)
         .then((userData) => {
           setCurrentUser(userData);
           setIsLoggedIn(true);
-          navigate('/');
+          navigate("/");
         })
-        .catch((err) => console.error(err));
+        .catch((err) => {
+          console.error("Error al verificar token:", err);
+        });
     }
   }, [navigate]);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && token) {
+      api.setToken(token);
+
       api.getUserInfo()
         .then(setCurrentUser)
         .catch(console.error);
@@ -48,7 +56,7 @@ function App() {
         .then(setCards)
         .catch(console.error);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, token]);
 
   function handleRegister({ email, password }) {
     setTooltipSource("register");
@@ -68,9 +76,11 @@ function App() {
     auth.authorize({ email, password })
       .then((data) => {
         if (data.token) {
-          localStorage.setItem('jwt', data.token);
+          localStorage.setItem("jwt", data.token);
+          setToken(data.token);
+          api.setToken(data.token);
           setIsLoggedIn(true);
-          navigate('/');
+          navigate("/");
         }
       })
       .catch((err) => {
@@ -79,12 +89,13 @@ function App() {
         navigate("/signin");
       });
   }
-  
 
   function handleSignOut() {
-    localStorage.removeItem('jwt');
+    localStorage.removeItem("jwt");
+    setToken("");
+    api.setToken("");
     setIsLoggedIn(false);
-    navigate('/signin');
+    navigate("/signin");
   }
 
   function handleOpenPopup(popup) {
@@ -97,11 +108,9 @@ function App() {
 
   function closeAllPopups() {
     setIsInfoTooltipOpen(false);
-
     if (tooltipSource === "register" && isSuccess) {
-      navigate('/signin');
+      navigate("/signin");
     }
-
     setTooltipSource(null);
   }
 

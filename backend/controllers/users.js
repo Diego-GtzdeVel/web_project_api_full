@@ -1,6 +1,10 @@
-const user = require('../models/user');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+
 
 const ERROR_CODE = 400;
+const UNAUTHORIZED_CODE = 401;
 const NOT_FOUND_CODE = 404;
 const SERVER_ERROR_CODE = 500;
 
@@ -33,8 +37,13 @@ module.exports.getUserById = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar, email, password } = req.body;
 
-  User.create({ name, about, avatar, email, password })
-    .then((user) => res.status(201).send(user))
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      return User.create({ name, about, avatar, email, password: hash });
+    })
+    .then((user) => {
+      res.status(201).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -46,6 +55,8 @@ module.exports.createUser = (req, res) => {
         .send({ message: 'Error del servidor', error: err.message });
     });
 };
+
+
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
@@ -88,3 +99,49 @@ module.exports.updateAvatar = (req, res) => {
         .send({ message: 'Error del servidor', error: err.message });
     });
 };
+
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Credenciales incorrectas'));
+      }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Credenciales incorrectas'));
+          }
+
+          const token = jwt.sign(
+            { _id: user._id },
+            'jwt_secret_key', // reemplazar esto con process.env.JWT_SECRET en producción
+            { expiresIn: '7d' }
+          );
+
+          res.send({ token });
+        });
+    })
+    .catch((err) => {
+      res.status(UNAUTHORIZED_CODE).send({ message: err.message || 'Error de autenticación' });
+    });
+};
+
+module.exports.getUserInfo = (req, res) => {
+  const { _id } = req.user;
+
+  User.findById(_id)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Usuario no encontrado' });
+      }
+      res.send(user);
+    })
+    .catch((err) => {
+      res.status(500).send({ message: 'Error del servidor', error: err.message });
+    });
+};
+
+
