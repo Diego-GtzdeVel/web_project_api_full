@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 
 const ERROR_CODE = 400;
@@ -11,7 +14,7 @@ const SERVER_ERROR_CODE = 500;
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) => res.status(SERVER_ERROR_CODE).send({ message: 'Error del servidor', error: err.message }));
+    .catch(next);
 };
 
 module.exports.getUserById = (req, res) => {
@@ -20,17 +23,15 @@ module.exports.getUserById = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND_CODE).send({ message: 'Usuario no encontrado' });
+        throw new NotFoundError('Usuario no encontrado');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_CODE).send({ message: 'ID de usuario no válido' });
+        throw new BadRequestError('ID de usuario no válido');
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
