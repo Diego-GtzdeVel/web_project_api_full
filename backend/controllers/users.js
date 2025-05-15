@@ -5,19 +5,13 @@ const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const UnauthorizedError = require('../errors/UnauthorizedError');
 
-
-const ERROR_CODE = 400;
-const UNAUTHORIZED_CODE = 401;
-const NOT_FOUND_CODE = 404;
-const SERVER_ERROR_CODE = 500;
-
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
     .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
@@ -25,41 +19,31 @@ module.exports.getUserById = (req, res) => {
       if (!user) {
         throw new NotFoundError('Usuario no encontrado');
       }
-      return res.send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequestError('ID de usuario no válido');
+        return next(new BadRequestError('ID de usuario no válido'));
       }
       return next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
 
   bcrypt.hash(password, 10)
-    .then((hash) => {
-      return User.create({ name, about, avatar, email, password: hash });
-    })
-    .then((user) => {
-      res.status(201).send(user);
-    })
+    .then((hash) => User.create({ name, about, avatar, email, password: hash }))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_CODE)
-          .send({ message: 'Datos inválidos al crear el usuario', error: err.message });
+        return next(new BadRequestError('Datos inválidos al crear el usuario'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-
-
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -70,17 +54,13 @@ module.exports.updateUser = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_CODE)
-          .send({ message: 'Datos inválidos al actualizar el usuario', error: err.message });
+        return next(new BadRequestError('Datos inválidos al actualizar el usuario'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -91,58 +71,48 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_CODE)
-          .send({ message: 'Datos inválidos al actualizar el avatar', error: err.message });
+        return next(new BadRequestError('Datos inválidos al actualizar el avatar'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Credenciales incorrectas'));
+        throw new UnauthorizedError('Credenciales incorrectas');
       }
+
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Credenciales incorrectas'));
+            throw new UnauthorizedError('Credenciales incorrectas');
           }
 
           const token = jwt.sign(
             { _id: user._id },
-            'jwt_secret_key', // reemplazar esto con process.env.JWT_SECRET en producción
+            process.env.JWT_SECRET || 'dev-secret',
             { expiresIn: '7d' }
           );
 
           res.send({ token });
         });
     })
-    .catch((err) => {
-      res.status(UNAUTHORIZED_CODE).send({ message: err.message || 'Error de autenticación' });
-    });
+    .catch(next);
 };
 
-module.exports.getUserInfo = (req, res) => {
+module.exports.getUserInfo = (req, res, next) => {
   const { _id } = req.user;
 
   User.findById(_id)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Usuario no encontrado' });
+        throw new NotFoundError('Usuario no encontrado');
       }
       res.send(user);
     })
-    .catch((err) => {
-      res.status(500).send({ message: 'Error del servidor', error: err.message });
-    });
+    .catch(next);
 };
-
-
