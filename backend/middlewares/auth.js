@@ -1,8 +1,13 @@
+if (process.env.NODE_ENV === 'production') {
+  require('dotenv').config();
+}
+
 const jwt = require('jsonwebtoken');
 
 const UNAUTHORIZED_CODE = 401;
 const FORBIDDEN_CODE = 403;
-const JWT_SECRET = 'jwt_secret_key';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
