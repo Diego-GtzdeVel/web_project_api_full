@@ -9,7 +9,6 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
-// Validador personalizado de URLs
 const validateURL = (value, helpers) => {
   if (validator.isURL(value)) {
     return value;

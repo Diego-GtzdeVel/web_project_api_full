@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Diego-GtzdeVel/web_project_around_express.git"
+    "url": "git+https://github.com/Diego-GtzdeVel/web_project_api_full.git"
   },
   "license": "ISC",
   "author": "Diego Gtz de Vel",
@@ -31,7 +31,7 @@
     "celebrate": "^15.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",

@@ -7,9 +7,9 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const cors = require('cors');
 
+const { login, createUser } = require('./controllers/users');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -23,17 +23,7 @@ mongoose.connect('mongodb://localhost:27017/aroundb');
 
 app.use(requestLogger);
 
-const allowedOrigins = [
-  'https://www.aroundus.serverpit.com',
-  'https://aroundus.serverpit.com',
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(cors());
 app.options('*', cors());
 
 app.get('/crash-test', () => {
