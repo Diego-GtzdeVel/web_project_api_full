@@ -5,6 +5,7 @@ if (process.env.NODE_ENV === 'production') {
 const express = require('express');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
+const cors = require('cors');
 
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
@@ -21,6 +22,15 @@ app.use(express.json());
 mongoose.connect('mongodb://localhost:27017/aroundb');
 
 app.use(requestLogger);
+
+app.use(cors());
+app.options('*', cors());
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('El servidor va a caer');
+  }, 0);
+});
 
 app.post('/signin', login);
 app.post('/signup', createUser);
