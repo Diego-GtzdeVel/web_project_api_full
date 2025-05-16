@@ -23,20 +23,8 @@ mongoose.connect('mongodb://localhost:27017/aroundb');
 
 app.use(requestLogger);
 
-const allowedOrigins = [
-  'https://www.aroundus.serverpit.com',
-  'https://aroundus.serverpit.com',
-];
-
-const corsOptions = {
-  origin: [
-    'https://www.aroundus.serverpit.com',
-    'https://aroundus.serverpit.com',
-  ],
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.use(cors());
+app.options('*', cors());
 
 app.get('/crash-test', () => {
   setTimeout(() => {
