@@ -23,7 +23,17 @@ mongoose.connect('mongodb://localhost:27017/aroundb');
 
 app.use(requestLogger);
 
-app.use(cors());
+const allowedOrigins = [
+  'https://www.aroundus.serverpit.com',
+  'https://aroundus.serverpit.com',
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.options('*', cors());
 
 app.get('/crash-test', () => {
