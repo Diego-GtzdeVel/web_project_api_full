@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-const urlRegex = /^(https?:\/\/)(www\.)?[\w-]+(\.[\w-]+)+([/\w-._~:/?#[\]@!$&'()*+,;=]*)#?$/;
-
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -19,7 +17,7 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     validate: {
-      validator: (v) => urlRegex.test(v),
+      validator: (v) => validator.isURL(v, { require_protocol: true }),
       message: (props) => `${props.value} no es un enlace válido al avatar.`,
     },
     default: 'https://practicum-content.s3.us-west-1.amazonaws.com/resources/moved_avatar_1604080799.jpg',

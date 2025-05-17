@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-
-const urlRegex = /^(https?:\/\/)(www\.)?[\w-]+(\.[\w-]+)+([/\w-._~:/?#[\]@!$&'()*+,;=]*)#?$/;
+const validator = require('validator');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -13,8 +12,8 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (v) => urlRegex.test(v),
-      message: (props) => `${props.value} no es un enlace válido al avatar.`,
+      validator: (v) => validator.isURL(v, { require_protocol: true }),
+      message: (props) => `${props.value} no es un enlace válido de imagen.`,
     },
   },
   owner: {

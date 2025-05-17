@@ -1,45 +1,38 @@
 const Card = require('../models/card');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-const ERROR_CODE = 400;
-const FORBIDDEN_CODE = 403;
-const NOT_FOUND_CODE = 404;
-const SERVER_ERROR_CODE = 500;
-
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => res.status(SERVER_ERROR_CODE).send({ message: 'Error del servidor', error: err.message }));
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
-  const { name, link, ownerId } = req.body;
+module.exports.createCard = (req, res, next) => {
+  const { name, link } = req.body;
 
-  Card.create({ name, link, owner: ownerId })
+  Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(ERROR_CODE).send({
-          message: 'Datos inválidos al crear la tarjeta',
-          error: err.message,
-        });
+        return next(new BadRequestError('Datos inválidos al crear la tarjeta'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND_CODE).send({ message: 'Tarjeta no encontrada' });
+        throw new NotFoundError('Tarjeta no encontrada');
       }
 
       if (card.owner.toString() !== req.user._id) {
-        return res.status(FORBIDDEN_CODE).send({ message: 'No tienes permiso para eliminar esta tarjeta' });
+        throw new ForbiddenError('No tienes permiso para eliminar esta tarjeta');
       }
 
       return Card.findByIdAndDelete(cardId)
@@ -47,16 +40,13 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_CODE).send({ message: 'ID de tarjeta no válido' });
+        return next(new BadRequestError('ID de tarjeta no válido'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -64,21 +54,19 @@ module.exports.likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND_CODE).send({ message: 'Tarjeta no encontrada' });
+        throw new NotFoundError('Tarjeta no encontrada');
       }
-      return res.send(card);
+      res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_CODE).send({ message: 'ID de tarjeta no válido' });
+        return next(new BadRequestError('ID de tarjeta no válido'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -86,16 +74,14 @@ module.exports.dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND_CODE).send({ message: 'Tarjeta no encontrada' });
+        throw new NotFoundError('Tarjeta no encontrada');
       }
-      return res.send(card);
+      res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_CODE).send({ message: 'ID de tarjeta no válido' });
+        return next(new BadRequestError('ID de tarjeta no válido'));
       }
-      return res
-        .status(SERVER_ERROR_CODE)
-        .send({ message: 'Error del servidor', error: err.message });
+      return next(err);
     });
 };
